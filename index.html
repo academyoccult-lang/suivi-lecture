@@ -191,6 +191,72 @@ h1{font-family:var(--title);font-size:clamp(19px,1.5vw + 10px,26px);font-weight:
   transition:.2s var(--ease)}
 .add-tile:hover{border-color:var(--gold);color:var(--gold-2);background:var(--gold-glow)}
 
+
+/* ---------- étagère 3D : vraies couvertures en trois quarts ---------- */
+.vswitch{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;gap:2px}
+.vswitch button{padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;
+  color:var(--text-mut);transition:.18s var(--ease);white-space:nowrap}
+.vswitch button.on{background:var(--surface);color:var(--text);
+  box-shadow:0 2px 8px -4px rgba(90,68,24,.3)}
+
+.shelves{display:flex;flex-direction:column;gap:clamp(26px,2.8vw,44px)}
+.shelfrow{min-width:0}
+.shelfhead{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.shelfhead h3{font-family:var(--title);font-size:clamp(12px,.6vw + 9px,14px);font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;margin:0}
+.shelfhead .cnt{font-size:11.5px;color:var(--text-mut)}
+.shelfhead .cnt b{color:var(--gold-2);font-weight:600}
+
+/* défilement horizontal : une étagère ne se replie pas, elle se parcourt */
+.books{display:flex;align-items:flex-end;padding:30px 60px 0 14px;
+  perspective:2600px;perspective-origin:34% 62%;
+  overflow-x:auto;overflow-y:visible;scrollbar-width:thin;scroll-padding:40px}
+.books::-webkit-scrollbar{height:6px}
+.books::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+
+.bk3{--peek:calc(var(--cw) * .62);position:relative;flex:0 0 auto;width:var(--cw);height:var(--h);
+  transform-style:preserve-3d;transform-origin:left center;
+  transform:rotateY(30deg);margin-right:calc(var(--peek) - var(--cw));
+  transition:transform .42s var(--ease),margin-right .42s var(--ease);
+  cursor:pointer;outline:none}
+.bk3:hover,.bk3:focus-visible{transform:rotateY(3deg) translateZ(46px);
+  margin-right:14px;z-index:9}
+
+.face{position:absolute;inset:0;border-radius:2px 5px 5px 2px;overflow:hidden;
+  background:var(--surface-2);
+  box-shadow:-12px 0 18px -8px rgba(60,42,14,.42),0 16px 28px -16px rgba(90,68,24,.6),
+    inset 1px 0 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(0,0,0,.07)}
+.face img{width:100%;height:100%;object-fit:cover;display:block}
+/* lumière rasante : le bord gauche capte, le droit s'enfonce */
+.face::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,.07),rgba(255,255,255,0) 14%,
+    rgba(60,42,14,.04) 58%,rgba(60,42,14,.20))}
+.face .ph3{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;
+  gap:6px;padding:12px;text-align:center;font-family:var(--title);font-weight:600;
+  font-size:11px;line-height:1.3;color:#fffdf8;overflow:hidden}
+.face .ph3 small{font-family:var(--sans);font-weight:400;font-size:9px;opacity:.85}
+.face .mark{position:absolute;top:-1px;right:9px;width:8px;height:26px;z-index:2;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}
+
+/* tranche de pages : l'épaisseur suit le nombre de pages */
+.edge{position:absolute;top:3px;bottom:3px;right:0;width:var(--th);
+  transform-origin:right center;transform:rotateY(-90deg);border-radius:1px;
+  background:repeating-linear-gradient(90deg,#efe5d0 0 1px,#fffdf8 1px 3px)}
+.edge::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(60,42,14,.22),transparent 40%)}
+
+.board{height:14px;border-radius:0 0 8px 8px;margin-top:-2px;
+  background:linear-gradient(180deg,#dccfb0,#bda375 42%,#9c8359);
+  box-shadow:0 12px 22px -11px rgba(90,68,24,.5),inset 0 1px 0 rgba(255,255,255,.5);
+  position:relative}
+.board::after{content:"";position:absolute;left:1%;right:1%;top:100%;height:18px;
+  background:radial-gradient(60% 100% at 50% 0,rgba(90,68,24,.2),transparent 70%)}
+
+.emptyshelf{color:var(--text-mut);font-size:12.5px;padding:26px 12px;font-style:italic}
+@media(hover:none){ .bk3{--peek:calc(var(--cw) * .8)} .bk3:hover{transform:rotateY(30deg)} }
+@media(max-width:640px){ .books{padding:24px 40px 0 8px} }
+
 /* ---------- tableau ---------- */
 .tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .inp{background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;
@@ -344,11 +410,13 @@ const LS_CID    = "lecture.clientId";
 const LS_KEY    = "lecture.booksKey";
 const LS_CACHE  = "lecture.cache";
 const LS_COVERS = "lecture.covers";
+const LS_MODE   = "lecture.mode";
 
 let S = { books:[], wishlist:[], formations:[], objectif:24, syncedAt:null };
 let view = "dash", status = "idle", statusMsg = "";
 let filters = { q:"", statut:"", annee:"", cat:"", type:"" };
 let modal = null;
+let shelfMode = localStorage.getItem(LS_MODE) !== "table";
 let coverCache = {};
 try { coverCache = JSON.parse(localStorage.getItem(LS_COVERS) || "{}"); } catch(e){}
 
@@ -759,6 +827,44 @@ function miniHTML(it){
     : '<div class="mini" style="background:'+c+'"></div>';
 }
 
+/* ---------------- étagère ---------------- */
+
+/* Hauteur et épaisseur proportionnelles au nombre de pages. La couverture
+   est la vraie, telle que l'API l'a fournie ; seule la tranche est dessinée. */
+function bookHTML(b){
+  const c = CAT_COLOR[b.categorie] || "var(--c-aut)";
+  const p = num(b.pages) || 220;
+  const h = Math.round(Math.max(172, Math.min(252, 158 + p/5.6)));
+  const w = Math.round(h * 0.655);
+  const th = Math.round(Math.max(9, Math.min(28, 6 + p/36)));
+  const titre = String(b.titre||"");
+  const repli = '<div class=\'ph3\' style=\'background:'+c+'\'>'+esc(titre)+
+    (b.auteur?'<small>'+esc(b.auteur)+'</small>':'')+'</div>';
+  const face = hasCover(b)
+    ? '<img loading="lazy" src="'+esc(b.cover)+'" alt="'+esc(titre)+'" '+
+      'onerror="this.parentNode.insertAdjacentHTML(\'afterbegin\',this.dataset.fb);this.remove()" '+
+      'data-fb="'+esc(repli)+'">'
+    : repli;
+  return '<div class="bk3" tabindex="0" data-edit="'+esc(b.id)+'" title="'+
+    esc(titre+(b.auteur?" — "+b.auteur:"")+(b.pages?" · "+b.pages+" p.":""))+'" '+
+    'style="--h:'+h+'px;--cw:'+w+'px;--th:'+th+'px">'+
+    '<div class="face">'+face+(b.statut==="En cours"?'<span class="mark"></span>':'')+'</div>'+
+    '<div class="edge"></div></div>';
+}
+
+function shelfRow(titre, items, unite){
+  const u = unite || (items.length>1 ? "livres" : "livre");
+  return '<div class="shelfrow"><div class="shelfhead"><h3>'+esc(titre)+'</h3>'+
+    '<span class="cnt"><b>'+items.length+'</b> '+u+'</span></div>'+
+    (items.length ? '<div class="books">'+items.map(bookHTML).join("")+'</div>'
+                  : '<div class="emptyshelf">Rayon vide</div>')+
+    '<div class="board"></div></div>';
+}
+
+const vswitch = () => '<div class="vswitch">'+
+  '<button data-mode="shelf" class="'+(shelfMode?"on":"")+'">Étagère</button>'+
+  '<button data-mode="table" class="'+(shelfMode?"":"on")+'">Tableau</button></div>';
+
 /* ---------------- vues ---------------- */
 
 function vDash(){
@@ -867,17 +973,18 @@ function vBiblio(){
   const sel = (id,val,opts,ph) => '<select class="inp" data-filter="'+id+'"><option value="">'+ph+'</option>'+
     opts.map(o=>'<option'+(String(val)===String(o)?' selected':'')+'>'+esc(o)+'</option>').join("")+'</select>';
 
-  return '<div class="head"><div><h1>Bibliothèque</h1><div class="sub">'+rows.length+
-    ' sur '+S.books.length+' lectures</div></div>'+
-    '<button class="btn" data-act="new-book">Ajouter une lecture</button></div>'+
-    '<div class="tools">'+
-      '<input class="inp search" data-filter="q" placeholder="Rechercher un titre, un auteur…" value="'+esc(filters.q)+'">'+
-      sel("statut",filters.statut,STATUTS,"Tous les statuts")+
-      sel("annee",filters.annee,yy,"Toutes les années")+
-      sel("cat",filters.cat,CATS,"Toutes les catégories")+
-      sel("type",filters.type,TYPES,"Tous les types")+
-    '</div>'+
-    '<div class="card pad">'+(rows.length? '<div class="tablewrap"><table><thead><tr>'+
+  const corps = shelfMode ? (function(){
+    const encours = rows.filter(b=>b.statut==="En cours");
+    const reste   = rows.filter(b=>b.statut!=="En cours");
+    const parAn = {};
+    reste.forEach(b=>{ const y=num(b.annee)||0; (parAn[y]=parAn[y]||[]).push(b); });
+    const ys = Object.keys(parAn).map(Number).sort((a,b)=>b-a);
+    if(!rows.length) return '<div class="empty">Aucune lecture ne correspond.</div>';
+    return '<div class="shelves">'+
+      (encours.length ? shelfRow("En cours de lecture", encours) : '')+
+      ys.map(y=>shelfRow(y?String(y):"Sans année", parAn[y])).join("")+
+    '</div>';
+  })() : '<div class="card pad">'+(rows.length? '<div class="tablewrap"><table><thead><tr>'+
       '<th></th><th>Titre</th><th>Auteur</th><th>Catégorie</th><th class="num">Pages</th>'+
       '<th class="c">Statut</th><th class="c">Année</th><th class="c">Note</th></tr></thead><tbody>'+
       rows.map(b=>'<tr data-edit="'+esc(b.id)+'"><td>'+miniHTML(b)+'</td>'+
@@ -887,16 +994,37 @@ function vBiblio(){
         '<td class="c">'+esc(b.annee||"")+'</td>'+
         '<td class="c">'+(b.note?b.note+"/5":"—")+'</td></tr>').join("")+
       '</tbody></table></div>' : '<div class="empty">Aucune lecture ne correspond.</div>')+'</div>';
+
+  return '<div class="head"><div><h1>Bibliothèque</h1><div class="sub">'+rows.length+
+    ' sur '+S.books.length+' lectures</div></div>'+
+    '<button class="btn" data-act="new-book">Ajouter une lecture</button></div>'+
+    '<div class="tools">'+vswitch()+
+      '<input class="inp search" data-filter="q" placeholder="Rechercher un titre, un auteur…" value="'+esc(filters.q)+'">'+
+      sel("statut",filters.statut,STATUTS,"Tous les statuts")+
+      sel("annee",filters.annee,yy,"Toutes les années")+
+      sel("cat",filters.cat,CATS,"Toutes les catégories")+
+      sel("type",filters.type,TYPES,"Tous les types")+
+    '</div>'+corps;
 }
 
 function vWish(){
   let rows = S.wishlist.slice();
   const q = filters.q.toLowerCase();
   if(q) rows = rows.filter(w=>(w.titre+" "+w.auteur).toLowerCase().includes(q));
-  return '<div class="head"><div><h1>À lire</h1><div class="sub">'+rows.length+
-    ' titres en attente</div></div><button class="btn" data-act="new-wish">Ajouter un titre</button></div>'+
-    '<div class="tools"><input class="inp search" data-filter="q" placeholder="Rechercher…" value="'+esc(filters.q)+'"></div>'+
-    '<div class="card pad"><div class="shelf">'+
+  const asBook = w => ({ id:w.id, titre:w.titre, auteur:w.auteur, categorie:w.categorie,
+                         cover:w.cover, pages:null, statut:"À lire" });
+  const corps = shelfMode ? (function(){
+    if(!rows.length) return '<div class="empty">Aucun titre ne correspond.</div>';
+    const g = { Haute:[], Moyenne:[], Basse:[], "":[] };
+    rows.forEach(w => (g[w.priorite] || g[""]).push(w));
+    const libel = { Haute:"Priorité haute", Moyenne:"Priorité moyenne",
+                    Basse:"Priorité basse", "":"À trier" };
+    return '<div class="shelves">'+
+      ["Haute","Moyenne","Basse",""].filter(k=>g[k].length)
+        .map(k=>shelfRow(libel[k], g[k].map(asBook), g[k].length>1?"titres":"titre")
+                 .replace(/data-edit=/g,'data-wish=')).join("")+
+    '</div>';
+  })() : '<div class="card pad"><div class="shelf">'+
       rows.map(w=>'<div class="bk" data-wish="'+esc(w.id)+'">'+coverHTML(w)+
         '<div><div class="nm">'+esc(w.titre)+'</div>'+
         (w.auteur?'<div class="au">'+esc(w.auteur)+'</div>':'')+
@@ -904,6 +1032,12 @@ function vWish(){
         '</div></div>').join("")+
       '<button class="add-tile" data-act="new-wish">'+svg(I.mark,26)+'<span>Ajouter un titre</span></button>'+
     '</div></div>';
+
+  return '<div class="head"><div><h1>À lire</h1><div class="sub">'+rows.length+
+    ' titres en attente</div></div><button class="btn" data-act="new-wish">Ajouter un titre</button></div>'+
+    '<div class="tools">'+vswitch()+
+      '<input class="inp search" data-filter="q" placeholder="Rechercher…" value="'+esc(filters.q)+'"></div>'+
+    corps;
 }
 
 function vForm(){
@@ -1085,6 +1219,10 @@ document.addEventListener("click", async ev => {
      && !ev.target.closest("[data-save],[data-del],[data-start],[data-find-cover],[data-save-cid],[data-recover],[data-export]")){
     /* clic à l'intérieur : ne ferme pas */
   }
+
+  const md = el("[data-mode]");
+  if(md){ shelfMode = md.dataset.mode === "shelf";
+          localStorage.setItem(LS_MODE, shelfMode ? "shelf" : "table"); render(); return; }
 
   const go = el("[data-go]");
   if(go){ view = go.dataset.go; filters = {q:"",statut:"",annee:"",cat:"",type:""}; render(); return; }
