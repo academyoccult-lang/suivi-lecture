@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Suivi de lecture</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- chargées sans bloquer le premier affichage : la page s'affiche
+     aussitôt avec Georgia / police système, puis les vraies prennent le relais -->
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap">
+<noscript><link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap"></noscript>
+<style>
+/* =====================================================================
+   Suivi de lecture — DA « Manifestation » éclaircie, entièrement fluide.
+   Typo et espacements en clamp(), grilles en auto-fit, zéro débordement.
+   ===================================================================== */
+:root{
+  --bg:#f6f1e6; --bg-elev:#fbf8f1; --surface:#fffdf8; --surface-2:#f1eade;
+  --line:rgba(80,64,32,.11); --line-strong:rgba(154,123,60,.26);
+  --text:#2b2620; --text-soft:#6a6252; --text-mut:#9a917e;
+  --gold:#c5a059; --gold-2:#a97f38; --gold-deep:#886225;
+  --gold-glow:rgba(197,160,89,.30);
+  --good:#4f9a5f; --warn:#c05f39;
+  --radius:18px; --radius-sm:12px; --radius-lg:26px;
+  --shadow:0 20px 46px -24px rgba(90,68,24,.26);
+  --shadow-soft:0 10px 26px -14px rgba(90,68,24,.16);
+  --ease:cubic-bezier(.16,.84,.44,1);
+  --title:"Cinzel","Cormorant Garamond",Georgia,serif;
+  --sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --c-eso:#9b7fc4; --c-ene:#e0885f; --c-spi:#6fae9f; --c-dev:#b0895f;
+  --c-san:#7fae6a; --c-biz:#cf9b3f; --c-fic:#7f9fd6; --c-his:#a58b6f;
+  --c-nat:#5f9a6a; --c-aut:#a8a094;
+  --gap:clamp(10px,1.1vw,14px);
+  --padx:clamp(14px,2.2vw,30px);
+}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;padding:0;overflow-x:clip}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(1100px 520px at 50% -10%,rgba(197,160,89,.13),transparent 70%);
+  background-attachment:fixed;
+  color:var(--text);font:400 clamp(13px,.28vw + 12.3px,14.5px)/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit;max-width:100%}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--gold-2)}
+::selection{background:var(--gold-glow);color:var(--text)}
+
+/* ---------- ossature ---------- */
+.app{display:flex;min-height:100vh;align-items:flex-start}
+.side{width:clamp(216px,18vw,248px);flex:0 0 auto;padding:22px 14px;
+  display:flex;flex-direction:column;gap:3px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:linear-gradient(180deg,rgba(255,253,248,.72),rgba(251,248,241,.45));
+  border-right:1px solid var(--line);backdrop-filter:blur(6px)}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 20px;
+  font-family:var(--title);font-weight:600;font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;
+  line-height:1.35}
+.brand .mk{width:32px;height:32px;border-radius:10px;flex:0 0 32px;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line-strong);color:var(--gold-2);
+  box-shadow:0 6px 18px -8px var(--gold-glow)}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--radius-sm);
+  color:var(--text-soft);font-weight:500;font-size:13.5px;width:100%;text-align:left;
+  transition:.18s var(--ease)}
+.nav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav svg{color:var(--text-mut);flex:0 0 18px;transition:.18s var(--ease)}
+.nav:hover{background:var(--surface);color:var(--text)}
+.nav.on{background:var(--surface);color:var(--text);font-weight:600;
+  border:1px solid var(--line-strong);box-shadow:0 6px 18px -12px var(--gold-glow)}
+.nav.on svg{color:var(--gold-2)}
+.side hr{border:0;border-top:1px solid var(--line);margin:16px 8px;width:calc(100% - 16px)}
+.stat{display:flex;align-items:center;gap:11px;padding:7px 12px;color:var(--text-mut);font-size:12.5px;
+  white-space:nowrap}
+.stat b{color:var(--text);font-weight:600}
+.stat svg{color:var(--text-mut);opacity:.8;flex:0 0 16px}
+.side-foot{margin-top:auto;padding-top:10px;width:100%}
+.sync{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-mut);padding:6px 12px}
+.sync span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text-mut);flex:0 0 7px}
+.dot.ok{background:var(--good)} .dot.err{background:var(--warn)} .dot.busy{background:var(--gold)}
+
+.main{flex:1 1 auto;min-width:0;padding:clamp(16px,2vw,26px) var(--padx) 70px;
+  width:100%;max-width:1680px;margin-inline:auto}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  flex-wrap:wrap;margin-bottom:clamp(14px,1.8vw,22px)}
+.head>div{min-width:0;flex:1 1 260px}
+h1{font-family:var(--title);font-size:clamp(19px,1.5vw + 10px,26px);font-weight:600;
+  letter-spacing:.02em;margin:0;line-height:1.2}
+.sub{color:var(--text-mut);font-size:12.5px;margin-top:4px}
+
+/* ---------- éléments ---------- */
+.btn{font-family:var(--sans);font-size:13.5px;font-weight:600;border-radius:999px;
+  padding:11px clamp(15px,1.4vw,22px);display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;transition:.18s var(--ease);white-space:nowrap;
+  background:linear-gradient(145deg,var(--gold),var(--gold-deep));color:#fffdf8;
+  box-shadow:0 10px 30px -14px var(--gold-glow)}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.btn.ghost{background:transparent;color:var(--gold-2);border:1px solid var(--gold-deep);box-shadow:none}
+.btn.ghost:hover{background:var(--gold-glow);color:var(--text);transform:none}
+.btn.danger{background:transparent;color:var(--warn);border:1px solid rgba(192,95,57,.4);box-shadow:none}
+.btn.danger:hover{background:rgba(192,95,57,.08);transform:none}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.card{background:linear-gradient(180deg,var(--surface),var(--bg-elev));
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-soft);min-width:0}
+.pad{padding:clamp(14px,1.5vw,20px)}
+.ttl{font-family:var(--title);font-size:clamp(11px,.5vw + 9px,13px);font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text);margin:0 0 14px;
+  display:flex;align-items:center;gap:9px;line-height:1.35}
+.ttl::after{content:"✦";color:var(--gold);font-size:10px;letter-spacing:0;flex:0 0 auto}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.t-fini{background:rgba(79,154,95,.11);color:#3d7a4a;border-color:rgba(79,154,95,.22)}
+.t-cours{background:var(--gold-glow);color:var(--gold-deep);border-color:rgba(154,123,60,.3)}
+.t-lire{background:rgba(127,159,214,.13);color:#4a6fa5;border-color:rgba(127,159,214,.26)}
+.t-stop{background:rgba(120,113,108,.09);color:var(--text-mut);border-color:var(--line)}
+.empty{color:var(--text-mut);text-align:center;padding:40px 10px;font-size:13.5px}
+
+/* bandeau (couvertures manquantes) */
+.banner{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap;
+  margin-bottom:var(--gap)}
+.banner p{margin:0;font-size:13px;color:var(--text-soft);flex:1 1 200px}
+
+/* ---------- chiffres clés ---------- */
+.kpis{display:grid;gap:var(--gap);margin-bottom:var(--gap);
+  grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.kpi{display:flex;align-items:center;gap:13px;padding:clamp(13px,1.3vw,18px) clamp(14px,1.4vw,20px)}
+.kpi>div{min-width:0}
+.ic{width:clamp(36px,3vw,44px);height:clamp(36px,3vw,44px);border-radius:12px;display:grid;
+  place-items:center;flex:0 0 auto;color:#fffdf8;box-shadow:0 8px 20px -12px rgba(90,68,24,.5)}
+.kpi .v{font-family:var(--title);font-size:clamp(20px,1.3vw + 12px,26px);font-weight:600;line-height:1.1}
+.kpi .l{font-size:12px;color:var(--text-mut);margin-top:2px;line-height:1.3}
+.goal{padding:clamp(14px,1.4vw,18px) clamp(16px,1.5vw,22px);display:flex;flex-direction:column;
+  justify-content:center;gap:9px;grid-column:span 2}
+.goal .h{font-family:var(--title);font-size:11px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.35}
+.bar{height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;transition:width .6s var(--ease);
+  background:linear-gradient(90deg,var(--gold),var(--gold-deep))}
+.goal .n{font-family:var(--title);font-size:clamp(18px,1vw + 12px,22px);font-weight:600}
+.goal .n span{color:var(--text-mut);font-weight:400;font-size:15px;font-family:var(--sans)}
+
+/* ---------- graphiques ---------- */
+.two{display:grid;gap:var(--gap);margin-bottom:var(--gap);
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.bars{display:flex;align-items:stretch;gap:clamp(4px,.6vw,8px);height:clamp(150px,16vw,200px)}
+.bcol{flex:1;display:flex;flex-direction:column;min-width:0}
+.bval{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.bval b{font-family:var(--title);font-size:clamp(11px,.5vw + 9px,14px);font-weight:600}
+.bval b.z{color:var(--text-mut);font-weight:400;opacity:.6}
+.bval i{display:block;width:62%;max-width:62px;border-radius:6px 6px 2px 2px;
+  transition:height .6s var(--ease);background:linear-gradient(180deg,var(--gold),var(--gold-deep))}
+.bx{text-align:center;font-size:clamp(10px,.4vw + 8.5px,12px);color:var(--text-mut);
+  padding-top:9px;margin-top:9px;border-top:1px solid var(--line)}
+.legend{display:flex;flex-direction:column;gap:9px;justify-content:center;min-width:0}
+.lg{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.lg .sw{width:10px;height:10px;border-radius:50%;flex:0 0 10px}
+.lg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft)}
+.lg .n{font-family:var(--title);font-weight:600;color:var(--text);flex:0 0 auto}
+.donut-wrap{display:grid;grid-template-columns:minmax(110px,150px) 1fr;gap:clamp(12px,1.4vw,20px);
+  align-items:center}
+.donut-wrap svg{width:100%;height:auto}
+
+/* ---------- couvertures ---------- */
+.shelf{display:grid;gap:clamp(12px,1.4vw,18px);
+  grid-template-columns:repeat(auto-fill,minmax(clamp(112px,11vw,150px),1fr))}
+.bk{display:flex;flex-direction:column;gap:9px;cursor:pointer;min-width:0}
+.cv{aspect-ratio:2/3;border-radius:var(--radius-sm);overflow:hidden;background:var(--surface-2);
+  border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow-soft);
+  transition:.22s var(--ease)}
+.bk:hover .cv{transform:translateY(-3px);box-shadow:var(--shadow)}
+.cv img{width:100%;height:100%;object-fit:cover;display:block}
+.cv .ph{padding:12px;text-align:center;font-family:var(--title);font-size:11.5px;line-height:1.4;
+  font-weight:600;color:#fffdf8;width:100%;height:100%;display:flex;flex-direction:column;
+  justify-content:center;gap:6px;overflow:hidden}
+.cv .ph small{font-family:var(--sans);font-weight:400;opacity:.85;font-size:10px}
+.bk .nm{font-size:12.5px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.bk .au{font-size:11.5px;color:var(--text-mut);overflow-wrap:anywhere}
+.bk .pr{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-mut)}
+.bk .pr .bar{flex:1;height:5px}
+.add-tile{border:1.5px dashed var(--line-strong);border-radius:var(--radius-sm);aspect-ratio:2/3;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  color:var(--text-mut);text-align:center;padding:14px;font-size:12px;width:100%;
+  transition:.2s var(--ease)}
+.add-tile:hover{border-color:var(--gold);color:var(--gold-2);background:var(--gold-glow)}
+
+/* ---------- tableau ---------- */
+.tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.inp{background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;
+  padding:9px 15px;font-size:12.5px;transition:.18s var(--ease);flex:0 1 auto}
+.inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+.search{flex:1 1 180px;min-width:150px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 calc(-1 * clamp(14px,1.5vw,20px));
+  padding:0 clamp(14px,1.5vw,20px)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:600px}
+th{text-align:left;font-family:var(--title);font-size:10px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--text-mut);font-weight:600;padding:0 10px 10px;white-space:nowrap}
+td{padding:9px 10px;border-top:1px solid var(--line);vertical-align:middle}
+td:nth-child(2){min-width:170px}
+tbody tr{cursor:pointer;transition:.14s var(--ease)}
+tbody tr:hover{background:var(--surface)}
+.mini{width:30px;height:44px;border-radius:5px;object-fit:cover;display:block;flex:0 0 30px;
+  background:var(--surface-2);border:1px solid var(--line)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.c{text-align:center;white-space:nowrap}
+
+/* ---------- fenêtre modale ---------- */
+.ov{position:fixed;inset:0;background:rgba(43,38,32,.34);backdrop-filter:blur(3px);
+  display:grid;place-items:center;padding:clamp(0px,2vw,24px);z-index:50;overflow-y:auto}
+.mod{background:linear-gradient(180deg,var(--surface),var(--bg-elev));border:1px solid var(--line-strong);
+  border-radius:var(--radius-lg);width:min(760px,100%);max-height:min(92vh,100%);overflow-y:auto;
+  box-shadow:var(--shadow)}
+.mod header{padding:22px clamp(16px,2vw,26px) 0;display:flex;justify-content:space-between;
+  align-items:flex-start;gap:12px}
+.mod h2{margin:0;font-family:var(--title);font-size:clamp(15px,.8vw + 11px,18px);font-weight:600;
+  overflow-wrap:anywhere}
+.mod .body{padding:18px clamp(16px,2vw,26px)}
+.mod footer{padding:14px clamp(16px,2vw,26px) 20px;display:flex;gap:9px;justify-content:flex-end;
+  flex-wrap:wrap;border-top:1px solid var(--line);margin-top:8px;position:sticky;bottom:0;
+  background:var(--bg-elev)}
+.fields{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-family:var(--title);font-size:10px;font-weight:600;color:var(--text-mut);
+  text-transform:uppercase;letter-spacing:.09em}
+.f input,.f select,.f textarea{background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:var(--radius-sm);padding:10px 12px;font-size:16px;width:100%;transition:.18s var(--ease)}
+.f textarea{resize:vertical;min-height:70px}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold-glow)}
+.cvbox{display:grid;grid-template-columns:clamp(72px,8vw,96px) 1fr;gap:14px;align-items:start}
+.x{font-size:24px;line-height:1;color:var(--text-mut);padding:2px 6px;flex:0 0 auto}
+.x:hover{color:var(--text)}
+
+/* ---------- connexion / toast ---------- */
+.setup{max-width:680px;margin:clamp(24px,8vh,90px) auto;padding:0 var(--padx)}
+.setup h1{font-size:clamp(21px,2vw + 12px,27px);margin-bottom:8px}
+.setup ol{padding-left:20px;line-height:1.9;color:var(--text-soft);font-size:13px}
+.setup code{background:var(--surface-2);padding:2px 6px;border-radius:6px;font-size:11.5px;
+  color:var(--gold-deep);overflow-wrap:anywhere}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--text);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:12.5px;
+  font-weight:500;z-index:80;box-shadow:var(--shadow);max-width:calc(100vw - 32px);text-align:center}
+
+/* ---------- ruptures ---------- */
+@media(max-width:1180px){ .goal{grid-column:span 2} }
+@media(max-width:900px){
+  .app{flex-direction:column}
+  .side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;align-items:center;
+    gap:6px;overflow-x:auto;overflow-y:hidden;padding:10px var(--padx);
+    border-right:0;border-bottom:1px solid var(--line);
+    background:rgba(255,253,248,.9);scrollbar-width:none}
+  .side::-webkit-scrollbar{display:none}
+  .brand{padding:0 10px 0 0;flex:0 0 auto;border-right:1px solid var(--line);margin-right:6px}
+  .brand>span:last-child{display:none}
+  .nav{width:auto;flex:0 0 auto;padding:8px 12px}
+  .side hr,.stat{display:none}
+  .side-foot{margin-top:0;margin-left:auto;display:flex;align-items:center;gap:4px;width:auto;
+    padding-top:0;flex:0 0 auto}
+  .sync{padding:0 6px}
+  .sync span:last-child{display:none}
+  .goal{grid-column:span 2}
+}
+@media(max-width:640px){
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(142px,1fr))}
+  .goal{grid-column:1/-1}
+  .kpi .l{font-size:11.5px}
+  .head .btn{width:auto}
+  .donut-wrap{grid-template-columns:1fr;justify-items:center}
+  .legend{width:100%}
+  .mod{border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:94vh;align-self:end}
+  .ov{place-items:end center}
+  .mod footer{border-radius:0}
+  .nav span{display:none}
+  .nav{padding:9px 11px}
+  .nav.on span{display:inline}
+}
+@media(max-width:480px){
+  .nav.on span{display:none}
+  .nav.on{padding:9px 12px}
+}
+@media(max-width:400px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .shelf{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* =================================================================
+   Suivi de lecture — front. Source de vérité : le Google Sheets,
+   atteint via l'Apps Script déployé en application web.
+   ================================================================= */
+
+const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet",
+              "Août","Septembre","Octobre","Novembre","Décembre"];
+const STATUTS = ["Terminé","En cours","À lire","Abandonné"];
+const TYPES = ["Livre","Magazine","BD","Audio"];
+const FORMATS = ["","Papier","Ebook","Audio","PDF"];
+const PRIOS = ["","Haute","Moyenne","Basse"];
+const CATS = ["Ésotérisme","Énergétique","Spiritualité","Développement personnel",
+              "Santé","Business","Fiction","Histoire","Nature","Autre"];
+const CAT_COLOR = {
+  "Ésotérisme":"var(--c-eso)","Énergétique":"var(--c-ene)","Spiritualité":"var(--c-spi)",
+  "Développement personnel":"var(--c-dev)","Santé":"var(--c-san)","Business":"var(--c-biz)",
+  "Fiction":"var(--c-fic)","Histoire":"var(--c-his)","Nature":"var(--c-nat)","Autre":"var(--c-aut)"
+};
+const TAGCLASS = {"Terminé":"t-fini","En cours":"t-cours","À lire":"t-lire","Abandonné":"t-stop"};
+
+/* ===================================================================
+   Accès direct à l'API Google Sheets. Le tableur reste la base ;
+   l'app est une seconde interface dessus. Aucun intermédiaire.
+   =================================================================== */
+const SHEET_ID = "1Utbsyi9J9zM76RB5oxhjyZ1N3WCx3Y4gc_GRfGerXfY";
+const SCOPE    = "https://www.googleapis.com/auth/spreadsheets";
+const API      = "https://sheets.googleapis.com/v4/spreadsheets/" + SHEET_ID;
+
+const SPECS = {
+  books: { tab:"Bibliothèque",
+    keys:["titre","auteur","type","categorie","pages","format","statut","annee",
+          "mois","dateDebut","dateFin","note","avis","pagesLues","cover","id"],
+    nums:["pages","annee","note","pagesLues"], dates:["dateDebut","dateFin"] },
+  wishlist: { tab:"À lire",
+    keys:["titre","auteur","lien","categorie","priorite","statut","notes","cover","id"],
+    nums:[], dates:[] },
+  formations: { tab:"Formations",
+    keys:["titre","formateur","duree","annee","statut","note","avis","id"],
+    nums:["annee","note"], dates:[] }
+};
+
+const LS_CID    = "lecture.clientId";
+const LS_KEY    = "lecture.booksKey";
+const LS_CACHE  = "lecture.cache";
+const LS_COVERS = "lecture.covers";
+
+let S = { books:[], wishlist:[], formations:[], objectif:24, syncedAt:null };
+let view = "dash", status = "idle", statusMsg = "";
+let filters = { q:"", statut:"", annee:"", cat:"", type:"" };
+let modal = null;
+let coverCache = {};
+try { coverCache = JSON.parse(localStorage.getItem(LS_COVERS) || "{}"); } catch(e){}
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = n => (n==null||n===""||isNaN(n)) ? 0 : Number(n);
+const fmt = n => num(n).toLocaleString("fr-FR");
+const fmtSync = s => {
+  if(!s) return "";
+  const [d,t] = String(s).split("T");
+  const [y,m,j] = (d||"").split("-");
+  return (j&&m&&y) ? j+"/"+m+"/"+y+" à "+String(t||"").slice(0,5) : String(s);
+};
+const NO_COVER = "—";
+const hasCover = x => x && x.cover && x.cover !== NO_COVER;
+const missingCovers = () => S.books.filter(b=>b.titre && !b.cover).length
+                          + S.wishlist.filter(w=>w.titre && !w.cover).length;
+
+const clientId = () => localStorage.getItem(LS_CID) || "";
+const booksKey = () => localStorage.getItem(LS_KEY) || "";
+
+/* ---- utilitaires feuille ---- */
+const colL = n => { let s=""; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; };
+const enc  = r => encodeURIComponent(r);
+const lastCol = sp => colL(sp.keys.length);
+const isoToFr = s => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||"")); return m? m[3]+"/"+m[2]+"/"+m[1] : String(s||""); };
+const frToIso = s => {
+  const t = String(s||"").trim();
+  let m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
+  if(m) return m[3]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2);
+  m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  return m ? m[0] : "";
+};
+const newId = () => Math.random().toString(16).slice(2,10);
+
+/* ---- authentification Google (GIS) ---- */
+let tokenClient = null, accessToken = null, tokenExp = 0;
+
+function gisReady(){
+  return new Promise((res,rej)=>{
+    const t0 = Date.now();
+    (function wait(){
+      if(window.google && google.accounts && google.accounts.oauth2) return res();
+      if(Date.now()-t0 > 12000) return rej(new Error("Google Identity n'a pas pu être chargé"));
+      setTimeout(wait, 80);
+    })();
+  });
+}
+
+async function getToken(interactive){
+  if(accessToken && Date.now() < tokenExp - 60000) return accessToken;
+  const cid = clientId();
+  if(!cid) throw new Error("Identifiant OAuth non configuré");
+  await gisReady();
+  if(!tokenClient) tokenClient = google.accounts.oauth2.initTokenClient(
+    { client_id: cid, scope: SCOPE, callback: ()=>{} });
+  return new Promise((res,rej)=>{
+    tokenClient.callback = r => {
+      if(r.error) return rej(new Error(r.error_description || r.error));
+      accessToken = r.access_token;
+      tokenExp = Date.now() + (Number(r.expires_in)||3600)*1000;
+      res(accessToken);
+    };
+    tokenClient.error_callback = e => rej(new Error(e && e.type ? e.type : "connexion refusée"));
+    try { tokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" }); }
+    catch(e){ rej(e); }
+  });
+}
+
+/** Appel API ; retente une fois en demandant un jeton neuf si 401. */
+async function sheets(path, opts, retried){
+  let t;
+  try { t = await getToken(false); }
+  catch(e){ if(retried) throw e; t = await getToken(true); }
+  const r = await fetch(API + path, Object.assign({}, opts, {
+    headers: Object.assign({ Authorization: "Bearer " + t,
+                             "Content-Type": "application/json" }, (opts||{}).headers)
+  }));
+  if(r.status === 401 && !retried){ accessToken = null; return sheets(path, opts, true); }
+  if(!r.ok){
+    let d = ""; try { d = (await r.json()).error.message; } catch(_){}
+    throw new Error("Sheets " + r.status + (d ? " · " + d : ""));
+  }
+  return r.status === 204 ? {} : r.json();
+}
+
+/* ---- identifiants des onglets (pour insérer / supprimer une ligne) ---- */
+let gids = null;
+async function sheetGid(tab){
+  if(!gids){
+    const j = await sheets("?fields=" + enc("sheets(properties(sheetId,title))"), {});
+    gids = {};
+    (j.sheets||[]).forEach(s => { gids[s.properties.title] = s.properties.sheetId; });
+  }
+  if(gids[tab] === undefined) throw new Error("Onglet introuvable : " + tab);
+  return gids[tab];
+}
+
+/* ---- lecture ---- */
+function parseRows(entity, values){
+  const sp = SPECS[entity], out = [], orphans = [];
+  (values||[]).forEach((v,i) => {
+    if(String(v[0]||"").trim() === "") return;
+    const o = { _row: i + 2 };
+    sp.keys.forEach((k,c) => {
+      const raw = v[c];
+      if(sp.dates.indexOf(k) >= 0)      o[k] = frToIso(raw);
+      else if(sp.nums.indexOf(k) >= 0)  o[k] = (raw === "" || raw == null) ? null : Number(raw);
+      else                              o[k] = raw == null ? "" : String(raw);
+    });
+    if(!o.id){ o.id = newId(); orphans.push(o); }
+    out.push(o);
+  });
+  return { rows: out, orphans };
+}
+
+async function loadAll(){
+  const qs = Object.keys(SPECS)
+    .map(k => "ranges=" + enc(SPECS[k].tab + "!A2:" + lastCol(SPECS[k])))
+    .concat(["ranges=" + enc("Tableau de bord!B4")])
+    .join("&");
+  const j = await sheets("/values:batchGet?" + qs +
+    "&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING", {});
+  const vr = j.valueRanges || [];
+  const data = { syncedAt: new Date().toISOString().slice(0,19) };
+  const toWrite = [];
+  Object.keys(SPECS).forEach((k,i) => {
+    const p = parseRows(k, (vr[i]||{}).values);
+    data[k] = p.rows;
+    const sp = SPECS[k], idc = colL(sp.keys.indexOf("id") + 1);
+    p.orphans.forEach(o => toWrite.push({ range: sp.tab+"!"+idc+o._row, values: [[o.id]] }));
+  });
+  const b4 = ((vr[3]||{}).values||[[]])[0][0];
+  data.objectif = Number(b4) || 24;
+  if(toWrite.length) {                   // identifiants manquants, écrits en un seul appel
+    sheets("/values:batchUpdate", { method:"POST",
+      body: JSON.stringify({ valueInputOption:"RAW", data: toWrite }) }).catch(()=>{});
+  }
+  return data;
+}
+
+async function pull(){
+  if(!clientId()){ status = "setup"; render(); return; }
+  setStatus("busy","Synchronisation…");
+  try{
+    absorb(await loadAll());
+    setStatus("ok","");
+  }catch(e){
+    const cached = localStorage.getItem(LS_CACHE);
+    if(cached){ try{ absorb(JSON.parse(cached)); }catch(_){} }
+    setStatus("err", e.message);
+  }
+}
+
+function absorb(d){
+  S = Object.assign(S, d);
+  try{ localStorage.setItem(LS_CACHE, JSON.stringify(d)); }catch(e){}
+  render();
+}
+function setStatus(s,m){ status=s; statusMsg=m||""; render(); }
+function toast(msg){
+  const t = document.createElement("div");
+  t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2800);
+}
+
+/* ---- écriture ---- */
+function rowValues(entity, row, existing){
+  const sp = SPECS[entity];
+  return sp.keys.map(k => {
+    let v = row.hasOwnProperty(k) ? row[k] : (existing ? existing[k] : "");
+    if(v == null) v = "";
+    if(sp.dates.indexOf(k) >= 0 && v) v = isoToFr(v);
+    return v;
+  });
+}
+
+/** Relit la colonne des identifiants : la ligne visée est retrouvée même si
+    le tableur a bougé entre-temps (c'est tout l'intérêt des deux portes). */
+async function rowOf(entity, id){
+  const sp = SPECS[entity], c = colL(sp.keys.indexOf("id") + 1);
+  const j = await sheets("/values/" + enc(sp.tab + "!" + c + "2:" + c), {});
+  const v = j.values || [];
+  for(let i=0;i<v.length;i++) if(String(v[i][0]||"") === id) return i + 2;
+  return null;
+}
+
+async function api(action, payload){
+  const p = payload || {};
+  const entity = p.entity, sp = SPECS[entity];
+
+  if(action === "upsert"){
+    const row = p.row;
+    let line = row.id ? await rowOf(entity, row.id) : null;
+    if(line){
+      const cur = (S[entity]||[]).find(x => x.id === row.id);
+      await sheets("/values/" + enc(sp.tab+"!A"+line+":"+lastCol(sp)+line) +
+        "?valueInputOption=USER_ENTERED",
+        { method:"PUT", body: JSON.stringify({ values:[rowValues(entity,row,cur)] }) });
+    } else {
+      if(!row.id) row.id = newId();
+      const gid = await sheetGid(sp.tab);
+      await sheets(":batchUpdate", { method:"POST", body: JSON.stringify({ requests:[
+        { insertDimension:{ range:{ sheetId:gid, dimension:"ROWS", startIndex:1, endIndex:2 },
+                            inheritFromBefore:false } } ] }) });
+      await sheets("/values/" + enc(sp.tab+"!A2:"+lastCol(sp)+"2") + "?valueInputOption=USER_ENTERED",
+        { method:"PUT", body: JSON.stringify({ values:[rowValues(entity,row,null)] }) });
+    }
+  }
+
+  else if(action === "delete"){
+    const line = await rowOf(entity, p.id);
+    if(line){
+      const gid = await sheetGid(sp.tab);
+      await sheets(":batchUpdate", { method:"POST", body: JSON.stringify({ requests:[
+        { deleteDimension:{ range:{ sheetId:gid, dimension:"ROWS",
+                                    startIndex:line-1, endIndex:line } } } ] }) });
+    }
+  }
+
+  else if(action === "saveCovers"){
+    const c = colL(sp.keys.indexOf("cover") + 1);
+    const j = await sheets("/values/" + enc(sp.tab + "!" +
+                 colL(sp.keys.indexOf("id")+1) + "2:" + colL(sp.keys.indexOf("id")+1)), {});
+    const map = {};
+    (j.values||[]).forEach((v,i) => { if(v[0]) map[String(v[0])] = i + 2; });
+    const data = (p.covers||[]).filter(x => map[x.id])
+                   .map(x => ({ range: sp.tab+"!"+c+map[x.id], values:[[x.cover]] }));
+    if(data.length) await sheets("/values:batchUpdate", { method:"POST",
+      body: JSON.stringify({ valueInputOption:"RAW", data }) });
+  }
+
+  else if(action === "setObjectif"){
+    await sheets("/values/" + enc("Tableau de bord!B4") + "?valueInputOption=USER_ENTERED",
+      { method:"PUT", body: JSON.stringify({ values:[[Number(p.value)||24]] }) });
+  }
+
+  absorb(await loadAll());
+}
+
+/* ---------------- couvertures ---------------- */
+
+function coverKey(t,a){ return (String(t||"")+"|"+String(a||"")).toLowerCase().trim(); }
+
+async function findCover(titre, auteur){
+  const clean = String(titre||"").replace(/\s*[\(\[].*?[\)\]]\s*/g," ").trim();
+  if(!clean) return null;
+  const key = booksKey();
+  for(const q of ['intitle:"'+clean+'"'+(auteur?' inauthor:"'+auteur+'"':''),
+                  clean + (auteur ? " " + auteur : "")]){
+    try{
+      const r = await fetch("https://www.googleapis.com/books/v1/volumes?printType=books&maxResults=5&q="
+                            + encodeURIComponent(q) + (key ? "&key="+encodeURIComponent(key) : ""));
+      if(r.status === 429 || r.status === 403) break;      // quota : on passe à Open Library
+      if(r.ok){
+        const j = await r.json();
+        for(const it of (j.items||[])){
+          const li = it.volumeInfo && it.volumeInfo.imageLinks;
+          const u = li && (li.thumbnail || li.smallThumbnail);
+          if(u) return u.replace(/^http:/,"https:").replace("&edge=curl","").replace(/zoom=\d/,"zoom=2");
+        }
+      }
+    }catch(e){}
+  }
+  for(const params of [ "title="+encodeURIComponent(clean)+(auteur?"&author="+encodeURIComponent(auteur):""),
+                        "title="+encodeURIComponent(clean),
+                        "q="+encodeURIComponent(clean+(auteur?" "+auteur:"")) ]){
+    try{
+      const r = await fetch("https://openlibrary.org/search.json?limit=5&fields=cover_i&"+params);
+      if(r.ok){
+        const j = await r.json();
+        for(const d of (j.docs||[])) if(d.cover_i)
+          return "https://covers.openlibrary.org/b/id/"+d.cover_i+"-L.jpg";
+      }
+    }catch(e){}
+  }
+  return null;
+}
+
+/** Recherche groupée, depuis le navigateur (les IP de navigateur ne sont pas
+    bloquées par Google Books, contrairement à celles d'Apps Script). */
+let coverBusy = false;
+async function fetchCoversBatch(){
+  if(coverBusy) return;
+  coverBusy = true;
+  let tot = 0;
+  try{
+    for(const entity of ["books","wishlist"]){
+      const todo = (S[entity]||[]).filter(x => x.titre && !x.cover);
+      const found = [];
+      for(const it of todo){
+        const k = coverKey(it.titre, it.auteur);
+        let url = coverCache[k];
+        if(url === undefined){
+          url = await findCover(it.titre, it.auteur);
+          coverCache[k] = url || null;
+          try{ localStorage.setItem(LS_COVERS, JSON.stringify(coverCache)); }catch(e){}
+          await new Promise(r => setTimeout(r, 180));
+        }
+        it.cover = url || NO_COVER;
+        found.push({ id: it.id, cover: it.cover });
+        if(url) tot++;
+        render();
+      }
+      if(found.length) await api("saveCovers", { entity, covers: found });
+    }
+    toast(tot ? tot + " couverture(s) ajoutée(s)" : "Aucune nouvelle couverture trouvée");
+  }catch(e){ toast("Échec : " + e.message); }
+  finally{ coverBusy = false; render(); }
+}
+
+/* ---------------- calculs ---------------- */
+
+const done = b => b.statut === "Terminé";
+const isBook = b => b.type !== "Magazine";
+
+/* Années du tableau de bord : celles où un livre a été terminé, plus
+   l'année en cours. Les trous courts sont comblés (2025 à 0 reste visible
+   entre 2024 et 2026) ; un écart long ne l'est pas, pour qu'une année de
+   parution saisie par erreur n'étire pas le graphique sur 40 colonnes. */
+function years(){
+  const cur = new Date().getFullYear();
+  const set = new Set(S.books.filter(done).map(b=>num(b.annee)).filter(y=>y>1900));
+  if(S.books.some(b=>num(b.annee)===cur)) set.add(cur);
+  const u = [...set].sort((a,b)=>a-b);
+  if(!u.length) return [];
+  const out=[];
+  u.forEach((y,i)=>{
+    out.push(y);
+    const next = u[i+1];
+    if(next && next-y>1 && next-y<=4) for(let k=y+1;k<next;k++) out.push(k);
+  });
+  return [...new Set(out)].sort((a,b)=>a-b);
+}
+/* Toutes les années saisies — pour le filtre de la Bibliothèque, qui doit
+   permettre de retrouver une ligne même mal datée. */
+function allYears(){
+  return [...new Set(S.books.map(b=>num(b.annee)).filter(y=>y>1900))].sort((a,b)=>b-a);
+}
+function statsFor(y){
+  const rows = S.books.filter(b=>num(b.annee)===y && done(b));
+  const livres = rows.filter(isBook);
+  const pagesL = livres.reduce((s,b)=>s+num(b.pages),0);
+  return { annee:y, livres:livres.length,
+           magazines: rows.filter(b=>!isBook(b)).length,
+           pages: rows.reduce((s,b)=>s+num(b.pages),0),
+           moy: livres.length ? Math.round(pagesL/livres.length) : 0 };
+}
+function totals(){
+  const fin = S.books.filter(done);
+  const livres = fin.filter(isBook);
+  const notes = S.books.map(b=>num(b.note)).filter(n=>n>0);
+  return {
+    livres: livres.length,
+    magazines: fin.filter(b=>!isBook(b)).length,
+    pages: fin.reduce((s,b)=>s+num(b.pages),0),
+    moy: livres.length ? Math.round(livres.reduce((s,b)=>s+num(b.pages),0)/livres.length) : 0,
+    encours: S.books.filter(b=>b.statut==="En cours").length,
+    note: notes.length ? (notes.reduce((a,b)=>a+b,0)/notes.length) : null
+  };
+}
+function byCategory(){
+  const m = {};
+  S.books.filter(done).forEach(b=>{
+    const c = b.categorie || "Autre";
+    if(!m[c]) m[c] = {cat:c, n:0, pages:0};
+    m[c].n++; m[c].pages += num(b.pages);
+  });
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+function progress(b){
+  const p = num(b.pages), l = num(b.pagesLues);
+  if(!p || !l) return null;
+  return Math.max(0, Math.min(100, Math.round(l/p*100)));
+}
+
+/* ---------------- icônes ---------------- */
+const I = {
+  home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/>',
+  books:'<path d="M4 4h5v16H4zM10 4h4v16h-4zM16.5 4.6l3.6 1 -3.6 14.8 -3.4-1z"/>',
+  mark:'<path d="M6 3h12v18l-6-4.5L6 21z"/>',
+  cap:'<path d="M12 4 2 9l10 5 10-5zM4 12v4c0 1.7 3.6 3 8 3s8-1.3 8-3v-4"/>',
+  book:'<path d="M4 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2H4zM20 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2H20z"/>',
+  page:'<path d="M6 2h8l4 4v16H6zM14 2v5h5"/>',
+  chart:'<path d="M4 20V10h4v10zM10 20V4h4v16zM16 20v-7h4v7z"/>',
+  open:'<path d="M2 5c3.5-1.5 6.5-1.5 10 0v15c-3.5-1.5-6.5-1.5-10 0zM22 5c-3.5-1.5-6.5-1.5-10 0v15c3.5-1.5 6.5-1.5 10 0z"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>'
+};
+const svg = (p,sz) => '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+const svgf = (p,sz) => '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="currentColor">'+p+'</svg>';
+
+/* ---------------- couverture ---------------- */
+function coverHTML(it, cls){
+  const c = CAT_COLOR[it.categorie] || "var(--sand)";
+  if(hasCover(it)) return '<div class="cv '+(cls||"")+'"><img loading="lazy" src="'+esc(it.cover)+
+    '" alt="" onerror="this.parentNode.innerHTML=\''+
+    esc('<div class="ph" style="background:'+c+'">'+esc(it.titre)+'</div>').replace(/'/g,"\\'")+'\'"></div>';
+  return '<div class="cv '+(cls||"")+'"><div class="ph" style="background:'+c+'">'+
+    esc(it.titre)+(it.auteur?'<small>'+esc(it.auteur)+'</small>':'')+'</div></div>';
+}
+function miniHTML(it){
+  const c = CAT_COLOR[it.categorie] || "var(--sand)";
+  return hasCover(it)
+    ? '<img class="mini" loading="lazy" src="'+esc(it.cover)+'" alt="" '+
+      'onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),'+
+      '{className:\'mini\',style:\'background:'+c+'\'}))">'
+    : '<div class="mini" style="background:'+c+'"></div>';
+}
+
+/* ---------------- vues ---------------- */
+
+function vDash(){
+  const t = totals();
+  const yy = years();
+  const cur = new Date().getFullYear();
+  const curStat = statsFor(cur);
+  const obj = num(S.objectif) || 24;
+  const pct = Math.min(100, Math.round(curStat.livres/obj*100));
+  const encours = S.books.filter(b=>b.statut==="En cours");
+  const cats = byCategory();
+
+  const kpi = (color,icon,val,lab) =>
+    '<div class="card kpi"><div class="ic" style="background:'+color+'">'+svgf(icon,20)+'</div>'+
+    '<div><div class="v">'+val+'</div><div class="l">'+lab+'</div></div></div>';
+
+  /* --- histogramme --- */
+  const data = yy.map(statsFor);
+  const max = Math.max(1, ...data.map(d=>d.livres));
+  const serre = data.length > 9;
+  const bars = data.map(d=>{
+    const h = Math.max(d.livres/max*100, d.livres?3:0);
+    const lab = serre ? "\u2019"+String(d.annee).slice(2) : d.annee;
+    return '<div class="bcol"><div class="bval"><b'+(d.livres?'':' class="z"')+'>'+d.livres+'</b>'+
+           '<i style="height:'+h+'%;opacity:'+(d.livres?1:.22)+'"></i></div>'+
+           '<div class="bx">'+lab+'</div></div>';
+  }).join("");
+
+  /* --- donut --- */
+  const top = cats.slice(0,6);
+  const tot = top.reduce((s,c)=>s+c.n,0) || 1;
+  let ang = -Math.PI/2, arcs="";
+  top.forEach(c=>{
+    const a = c.n/tot*Math.PI*2, e = ang+a, R=62, r=34, C=75;
+    const big = a>Math.PI?1:0;
+    arcs += '<path d="M'+(C+R*Math.cos(ang))+' '+(C+R*Math.sin(ang))+
+      ' A'+R+' '+R+' 0 '+big+' 1 '+(C+R*Math.cos(e))+' '+(C+R*Math.sin(e))+
+      ' L'+(C+r*Math.cos(e))+' '+(C+r*Math.sin(e))+
+      ' A'+r+' '+r+' 0 '+big+' 0 '+(C+r*Math.cos(ang))+' '+(C+r*Math.sin(ang))+'Z" fill="'+
+      (CAT_COLOR[c.cat]||"#ccc")+'"/>';
+    ang = e;
+  });
+
+  return '<div class="head"><div><h1>Tableau de bord</h1>'+
+    '<div class="sub">'+fmt(S.books.length)+' lectures enregistrées'+
+    (S.syncedAt?' · synchronisé le '+esc(fmtSync(S.syncedAt)):'')+'</div></div>'+
+    '<button class="btn" data-act="new-book">Ajouter une lecture</button></div>'+
+
+  (missingCovers() ? '<div class="card pad banner"><p>'+missingCovers()+
+    ' titre(s) sans couverture.</p>'+
+    '<button class="btn ghost" data-covers>Chercher les couvertures</button></div>' : '')+
+
+  '<div class="kpis">'+
+    kpi("linear-gradient(145deg,var(--gold),var(--gold-deep))",I.open,fmt(t.livres),"livres&nbsp;terminés")+
+    kpi("var(--c-fic)",I.page,fmt(t.pages),"pages&nbsp;lues")+
+    kpi("var(--c-san)",I.chart,fmt(t.moy),"pages&nbsp;/&nbsp;livre")+
+    kpi("var(--c-eso)",I.book,fmt(t.encours),"en&nbsp;cours")+
+    '<div class="card goal"><div class="h">Objectif '+cur+' — '+obj+' livres</div>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="n">'+curStat.livres+' <span>/ '+obj+'</span></div></div>'+
+  '</div>'+
+
+  '<div class="two">'+
+    '<div class="card pad"><h3 class="ttl">Livres terminés par année</h3>'+
+      (data.length
+        ? '<div class="bars">'+bars+'</div>'
+        : '<div class="empty">Aucune donnée</div>')+
+    '</div>'+
+    '<div class="card pad"><h3 class="ttl">Répartition par catégorie</h3>'+
+      (top.length
+        ? '<div class="donut-wrap"><svg viewBox="0 0 150 150" style="width:150px;height:150px">'+arcs+'</svg>'+
+          '<div class="legend">'+top.map(c=>'<div class="lg"><span class="sw" style="background:'+
+            (CAT_COLOR[c.cat]||"#ccc")+'"></span><span class="nm">'+esc(c.cat)+
+            '</span><span class="n">'+c.n+'</span></div>').join("")+'</div></div>'
+        : '<div class="empty">Aucune donnée</div>')+
+    '</div>'+
+  '</div>'+
+
+  '<div class="card pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+    '<h3 class="ttl" style="margin:0">En cours de lecture</h3>'+
+    '<button style="color:var(--gold-2);font-size:12px;font-weight:600;letter-spacing:.04em" data-go="biblio">Voir tout ›</button></div>'+
+    '<div class="shelf">'+
+      encours.map(b=>{
+        const p = progress(b);
+        return '<div class="bk" data-edit="'+esc(b.id)+'">'+coverHTML(b)+
+          '<div><div class="nm">'+esc(b.titre)+'</div>'+
+          (b.auteur?'<div class="au">'+esc(b.auteur)+'</div>':'')+'</div>'+
+          (p!==null?'<div class="pr">'+p+' %<span class="bar" style="flex:1"><i style="width:'+p+'%"></i></span></div>':'')+
+          '</div>';
+      }).join("")+
+      '<button class="add-tile" data-act="new-book">'+svg(I.book,26)+
+        '<span>Ajouter une lecture</span></button>'+
+    '</div></div>';
+}
+
+function vBiblio(){
+  const yy = allYears();
+  let rows = S.books.slice();
+  const q = filters.q.toLowerCase();
+  if(q) rows = rows.filter(b=>(b.titre+" "+b.auteur).toLowerCase().includes(q));
+  if(filters.statut) rows = rows.filter(b=>b.statut===filters.statut);
+  if(filters.annee)  rows = rows.filter(b=>String(b.annee)===filters.annee);
+  if(filters.cat)    rows = rows.filter(b=>b.categorie===filters.cat);
+  if(filters.type)   rows = rows.filter(b=>b.type===filters.type);
+
+  const sel = (id,val,opts,ph) => '<select class="inp" data-filter="'+id+'"><option value="">'+ph+'</option>'+
+    opts.map(o=>'<option'+(String(val)===String(o)?' selected':'')+'>'+esc(o)+'</option>').join("")+'</select>';
+
+  return '<div class="head"><div><h1>Bibliothèque</h1><div class="sub">'+rows.length+
+    ' sur '+S.books.length+' lectures</div></div>'+
+    '<button class="btn" data-act="new-book">Ajouter une lecture</button></div>'+
+    '<div class="tools">'+
+      '<input class="inp search" data-filter="q" placeholder="Rechercher un titre, un auteur…" value="'+esc(filters.q)+'">'+
+      sel("statut",filters.statut,STATUTS,"Tous les statuts")+
+      sel("annee",filters.annee,yy,"Toutes les années")+
+      sel("cat",filters.cat,CATS,"Toutes les catégories")+
+      sel("type",filters.type,TYPES,"Tous les types")+
+    '</div>'+
+    '<div class="card pad">'+(rows.length? '<div class="tablewrap"><table><thead><tr>'+
+      '<th></th><th>Titre</th><th>Auteur</th><th>Catégorie</th><th class="num">Pages</th>'+
+      '<th class="c">Statut</th><th class="c">Année</th><th class="c">Note</th></tr></thead><tbody>'+
+      rows.map(b=>'<tr data-edit="'+esc(b.id)+'"><td>'+miniHTML(b)+'</td>'+
+        '<td><b>'+esc(b.titre)+'</b></td><td>'+esc(b.auteur)+'</td>'+
+        '<td>'+esc(b.categorie)+'</td><td class="num">'+(b.pages?fmt(b.pages):"—")+'</td>'+
+        '<td class="c"><span class="tag '+(TAGCLASS[b.statut]||"")+'">'+esc(b.statut)+'</span></td>'+
+        '<td class="c">'+esc(b.annee||"")+'</td>'+
+        '<td class="c">'+(b.note?b.note+"/5":"—")+'</td></tr>').join("")+
+      '</tbody></table></div>' : '<div class="empty">Aucune lecture ne correspond.</div>')+'</div>';
+}
+
+function vWish(){
+  let rows = S.wishlist.slice();
+  const q = filters.q.toLowerCase();
+  if(q) rows = rows.filter(w=>(w.titre+" "+w.auteur).toLowerCase().includes(q));
+  return '<div class="head"><div><h1>À lire</h1><div class="sub">'+rows.length+
+    ' titres en attente</div></div><button class="btn" data-act="new-wish">Ajouter un titre</button></div>'+
+    '<div class="tools"><input class="inp search" data-filter="q" placeholder="Rechercher…" value="'+esc(filters.q)+'"></div>'+
+    '<div class="card pad"><div class="shelf">'+
+      rows.map(w=>'<div class="bk" data-wish="'+esc(w.id)+'">'+coverHTML(w)+
+        '<div><div class="nm">'+esc(w.titre)+'</div>'+
+        (w.auteur?'<div class="au">'+esc(w.auteur)+'</div>':'')+
+        (w.priorite?'<div style="margin-top:5px"><span class="tag '+(w.priorite==="Haute"?"t-cours":"t-lire")+'">'+esc(w.priorite)+'</span></div>':'')+
+        '</div></div>').join("")+
+      '<button class="add-tile" data-act="new-wish">'+svg(I.mark,26)+'<span>Ajouter un titre</span></button>'+
+    '</div></div>';
+}
+
+function vForm(){
+  return '<div class="head"><div><h1>Formations</h1><div class="sub">'+S.formations.length+
+    ' formations</div></div><button class="btn" data-act="new-form">Ajouter une formation</button></div>'+
+    '<div class="card pad">'+(S.formations.length?'<div class="tablewrap"><table><thead><tr><th>Formation</th><th>Formateur</th>'+
+      '<th>Durée</th><th class="c">Année</th><th class="c">Statut</th><th class="c">Note</th></tr></thead><tbody>'+
+      S.formations.map(f=>'<tr data-form="'+esc(f.id)+'"><td><b>'+esc(f.titre)+'</b></td>'+
+        '<td>'+esc(f.formateur)+'</td><td>'+esc(f.duree)+'</td><td class="c">'+esc(f.annee||"")+'</td>'+
+        '<td class="c"><span class="tag '+(TAGCLASS[f.statut]||"")+'">'+esc(f.statut)+'</span></td>'+
+        '<td class="c">'+(f.note?f.note+"/5":"—")+'</td></tr>').join("")+'</tbody></table></div>'
+      :'<div class="empty">Aucune formation.</div>')+'</div>';
+}
+
+/* ---------------- formulaires ---------------- */
+const fld = (k,l,v,t) => '<div class="f'+(t==="wide"?" wide":"")+'"><label>'+l+'</label>'+
+  '<input name="'+k+'" type="'+(t==="num"?"number":t==="date"?"date":"text")+'" value="'+esc(v==null?"":v)+'"></div>';
+const fsel = (k,l,v,opts) => '<div class="f"><label>'+l+'</label><select name="'+k+'">'+
+  opts.map(o=>'<option value="'+esc(o)+'"'+(String(v||"")===String(o)?" selected":"")+'>'+esc(o||"—")+'</option>').join("")+'</select></div>';
+const ftxt = (k,l,v) => '<div class="f wide"><label>'+l+'</label><textarea name="'+k+'">'+esc(v||"")+'</textarea></div>';
+
+function mBook(b){
+  const isNew = !b.id;
+  return '<div class="ov" data-close><div class="mod" data-stop>'+
+   '<header><h2>'+(isNew?"Nouvelle lecture":esc(b.titre))+'</h2><button class="x" data-close>&times;</button></header>'+
+   '<div class="body"><form id="frm">'+
+     '<div class="cvbox" style="margin-bottom:16px">'+coverHTML(b)+
+       '<div style="display:flex;flex-direction:column;gap:8px">'+
+       '<div class="f"><label>Couverture (URL)</label><input name="cover" value="'+esc(hasCover(b)?b.cover:"")+'"></div>'+
+       '<button type="button" class="btn ghost" data-find-cover>Chercher la couverture</button>'+
+       '<div style="font-size:11.5px;color:var(--faint)">Google Books, puis Open Library. Gratuit, sans compte.</div>'+
+       '</div></div>'+
+     '<div class="fields">'+
+       fld("titre","Titre",b.titre,"wide")+
+       fld("auteur","Auteur",b.auteur)+
+       fsel("type","Type",b.type||"Livre",TYPES)+
+       fsel("categorie","Catégorie",b.categorie,CATS)+
+       fsel("statut","Statut",b.statut||"En cours",STATUTS)+
+       fld("pages","Pages",b.pages,"num")+
+       fld("pagesLues","Pages lues",b.pagesLues,"num")+
+       fld("annee","Année",b.annee||new Date().getFullYear(),"num")+
+       fsel("mois","Mois",b.mois,[""].concat(MOIS))+
+       fsel("format","Format",b.format,FORMATS)+
+       fld("note","Note /5",b.note,"num")+
+       fld("dateDebut","Date de début",b.dateDebut,"date")+
+       fld("dateFin","Date de fin",b.dateFin,"date")+
+       ftxt("avis","Notes & ressenti",b.avis)+
+     '</div></form></div>'+
+   '<footer>'+(isNew?"":'<button class="btn danger" data-del="books:'+esc(b.id)+'">Supprimer</button>')+
+     '<div style="flex:1"></div><button class="btn ghost" data-close>Annuler</button>'+
+     '<button class="btn" data-save="books">Enregistrer</button></footer></div></div>';
+}
+
+function mWish(w){
+  const isNew = !w.id;
+  return '<div class="ov" data-close><div class="mod" data-stop>'+
+   '<header><h2>'+(isNew?"Nouveau titre à lire":esc(w.titre))+'</h2><button class="x" data-close>&times;</button></header>'+
+   '<div class="body"><form id="frm"><div class="fields">'+
+     fld("titre","Titre",w.titre,"wide")+
+     fld("auteur","Auteur",w.auteur)+
+     fsel("categorie","Catégorie",w.categorie,CATS)+
+     fsel("priorite","Priorité",w.priorite,PRIOS)+
+     fld("cover","Couverture (URL)",hasCover(w)?w.cover:"")+
+     fld("lien","Lien",w.lien,"wide")+
+     ftxt("notes","Notes",w.notes)+
+   '</div></form></div>'+
+   '<footer>'+(isNew?"":'<button class="btn danger" data-del="wishlist:'+esc(w.id)+'">Supprimer</button>'+
+     '<button class="btn ghost" data-start="'+esc(w.id)+'">Commencer la lecture</button>')+
+     '<div style="flex:1"></div><button class="btn ghost" data-close>Annuler</button>'+
+     '<button class="btn" data-save="wishlist">Enregistrer</button></footer></div></div>';
+}
+
+function mForm(f){
+  const isNew = !f.id;
+  return '<div class="ov" data-close><div class="mod" data-stop>'+
+   '<header><h2>'+(isNew?"Nouvelle formation":esc(f.titre))+'</h2><button class="x" data-close>&times;</button></header>'+
+   '<div class="body"><form id="frm"><div class="fields">'+
+     fld("titre","Formation",f.titre,"wide")+
+     fld("formateur","Formateur",f.formateur)+
+     fld("duree","Durée",f.duree)+
+     fld("annee","Année",f.annee,"num")+
+     fsel("statut","Statut",f.statut||"En cours",STATUTS)+
+     fld("note","Note /5",f.note,"num")+
+     ftxt("avis","Notes & ressenti",f.avis)+
+   '</div></form></div>'+
+   '<footer>'+(isNew?"":'<button class="btn danger" data-del="formations:'+esc(f.id)+'">Supprimer</button>')+
+     '<div style="flex:1"></div><button class="btn ghost" data-close>Annuler</button>'+
+     '<button class="btn" data-save="formations">Enregistrer</button></footer></div></div>';
+}
+
+function mSettings(){
+  return '<div class="ov" data-close><div class="mod" data-stop style="width:min(620px,100%)">'+
+   '<header><h2>Réglages</h2><button class="x" data-close>&times;</button></header>'+
+   '<div class="body">'+
+     '<div class="f wide"><label>ID client OAuth</label>'+
+     '<input id="cid-input" value="'+esc(clientId())+'" placeholder="…apps.googleusercontent.com"></div>'+
+     '<div class="f wide" style="margin-top:13px"><label>Clé Google Books (facultative)</label>'+
+     '<input id="key-input" value="'+esc(booksKey())+'" placeholder="améliore nettement les couvertures"></div>'+
+     '<div style="margin-top:14px;font-size:12.5px;color:var(--text-mut);line-height:1.7">'+
+       'Origine à autoriser dans la console Google : <code>'+esc(location.origin)+'</code><br>'+
+       'Objectif : <b>'+num(S.objectif)+'</b> livres/an — pilotée par la cellule B4 du tableur.<br>'+
+       'Dernière synchronisation : '+(S.syncedAt?esc(fmtSync(S.syncedAt)):"jamais")+'</div>'+
+     '<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'+
+       '<button class="btn ghost" data-covers>Chercher les couvertures manquantes</button>'+
+       '<button class="btn ghost" data-recover>Tout rechercher depuis zéro</button>'+
+       '<button class="btn ghost" data-export>Exporter en JSON</button></div>'+
+   '</div>'+
+   '<footer><div style="flex:1"></div><button class="btn ghost" data-close>Fermer</button>'+
+   '<button class="btn" data-save-cid>Enregistrer</button></footer></div></div>';
+}
+
+function vSetup(){
+  const origin = location.origin;
+  return '<div class="setup"><h1>Connecter le tableur</h1>'+
+   '<p style="color:var(--text-mut);font-size:14px">L\'app ne stocke rien : elle lit et écrit '+
+   'directement dans ton Google Sheets. Une seule opération, une fois.</p>'+
+   '<div class="card pad" style="margin-top:20px"><ol>'+
+     '<li>Ouvre <code>console.cloud.google.com</code> → ton projet</li>'+
+     '<li><code>API et services</code> → <code>Bibliothèque</code> → active <b>Google Sheets API</b></li>'+
+     '<li><code>Identifiants</code> → <code>Créer des identifiants</code> → <b>ID client OAuth</b> → '+
+       'type <b>Application Web</b></li>'+
+     '<li>Dans <b>Origines JavaScript autorisées</b>, ajoute exactement :<br>'+
+       '<code>'+esc(origin)+'</code></li>'+
+     '<li>Copie l\'ID client (il finit par <code>.apps.googleusercontent.com</code>) et colle-le ici</li>'+
+   '</ol>'+
+   '<div class="f wide" style="margin-top:14px"><label>ID client OAuth</label>'+
+   '<input id="cid-input" placeholder="123456789-xxxx.apps.googleusercontent.com"></div>'+
+   '<div style="margin-top:14px"><button class="btn" data-save-cid>Connecter</button></div>'+
+   '</div></div>';
+}
+
+/* ---------------- shell ---------------- */
+
+function render(){
+  const t = totals();
+  const navBtn = (id,ic,lab) => '<button class="nav'+(view===id?" on":"")+'" data-go="'+id+'">'+
+    svg(ic)+'<span>'+lab+'</span></button>';
+  const body = view==="dash"?vDash():view==="biblio"?vBiblio():view==="wish"?vWish():vForm();
+
+  const html = status==="setup" ? vSetup() :
+   '<div class="app"><aside class="side">'+
+     '<div class="brand"><span class="mk">'+svg(I.books,17)+'</span><span>Suivi de lecture</span></div>'+
+     navBtn("dash",I.home,"Tableau de bord")+
+     navBtn("biblio",I.books,"Bibliothèque")+
+     navBtn("wish",I.mark,"À lire")+
+     navBtn("form",I.cap,"Formations")+
+     '<hr>'+
+     '<div class="stat">'+svg(I.book,16)+'<span><b>'+fmt(S.books.length)+'</b> lectures</span></div>'+
+     '<div class="stat">'+svg(I.page,16)+'<span><b>'+fmt(S.books.filter(b=>b.type==="Magazine").length)+'</b> magazines</span></div>'+
+     '<div class="stat">'+svg(I.mark,16)+'<span><b>'+fmt(S.wishlist.length)+'</b> titres à lire</span></div>'+
+     '<div class="side-foot">'+
+       '<div class="sync"><span class="dot '+(status==="ok"?"ok":status==="err"?"err":status==="busy"?"busy":"")+'"></span>'+
+       '<span>'+(status==="busy"?"Synchronisation…":status==="err"?esc(statusMsg||"Hors ligne"):"Synchronisé")+'</span></div>'+
+       '<button class="nav" data-act="settings">'+svg(I.gear,16)+'<span>Réglages</span></button>'+
+     '</div></aside>'+
+   '<main class="main">'+body+'</main></div>';
+
+  $("#root").innerHTML = html + (modal || "");
+  const f = $("#url-input"); if(f && document.activeElement!==f) f.value = f.value;
+}
+
+/* ---------------- interactions ---------------- */
+
+function formData(){
+  const o = {};
+  document.querySelectorAll("#frm [name]").forEach(el=>{
+    let v = el.value;
+    if(el.type==="number") v = v===""?null:Number(v);
+    o[el.name] = v;
+  });
+  return o;
+}
+function openModal(html){ modal = html; render(); }
+function closeModal(){ modal = null; render(); }
+
+document.addEventListener("click", async ev => {
+  const el = t => ev.target.closest(t);
+  if(el("[data-stop]") && !el("[data-close]") && ev.target.closest(".mod")===el("[data-stop]")
+     && !ev.target.closest("[data-save],[data-del],[data-start],[data-find-cover],[data-save-cid],[data-recover],[data-export]")){
+    /* clic à l'intérieur : ne ferme pas */
+  }
+
+  const go = el("[data-go]");
+  if(go){ view = go.dataset.go; filters = {q:"",statut:"",annee:"",cat:"",type:""}; render(); return; }
+
+  const act = el("[data-act]");
+  if(act){
+    const a = act.dataset.act;
+    if(a==="new-book") openModal(mBook({}));
+    if(a==="new-wish") openModal(mWish({}));
+    if(a==="new-form") openModal(mForm({}));
+    if(a==="settings") openModal(mSettings());
+    return;
+  }
+
+  const ed = el("[data-edit]");
+  if(ed){ const b = S.books.find(x=>x.id===ed.dataset.edit); if(b) openModal(mBook(b)); return; }
+  const wi = el("[data-wish]");
+  if(wi){ const w = S.wishlist.find(x=>x.id===wi.dataset.wish); if(w) openModal(mWish(w)); return; }
+  const fo = el("[data-form]");
+  if(fo){ const f = S.formations.find(x=>x.id===fo.dataset.form); if(f) openModal(mForm(f)); return; }
+
+  if(el("[data-find-cover]")){
+    const btn = el("[data-find-cover]");
+    const d = formData();
+    btn.disabled = true; btn.textContent = "Recherche…";
+    const url = await findCover(d.titre, d.auteur);
+    btn.disabled = false; btn.textContent = "Chercher la couverture";
+    if(url){ const i = document.querySelector('#frm [name="cover"]'); if(i) i.value = url;
+             toast("Couverture trouvée"); }
+    else toast("Aucune couverture trouvée");
+    return;
+  }
+
+  const sv = el("[data-save]");
+  if(sv){
+    const entity = sv.dataset.save;
+    const row = formData();
+    const src = entity==="books"?S.books:entity==="wishlist"?S.wishlist:S.formations;
+    const cur = modal && modal.indexOf('data-del="'+entity+':')>=0
+      ? (modal.match(new RegExp('data-del="'+entity+':([^"]+)"'))||[])[1] : null;
+    if(cur) row.id = cur;
+    if(!row.titre){ toast("Le titre est obligatoire"); return; }
+    sv.disabled = true; sv.textContent = "Enregistrement…";
+    try{ await api("upsert",{entity,row}); closeModal(); toast("Enregistré dans le Sheets"); }
+    catch(e){ sv.disabled=false; sv.textContent="Enregistrer"; toast("Échec : "+e.message); }
+    return;
+  }
+
+  const dl = el("[data-del]");
+  if(dl){
+    const [entity,id] = dl.dataset.del.split(":");
+    if(!confirm("Supprimer définitivement cette ligne du Sheets ?")) return;
+    try{ await api("delete",{entity,id}); closeModal(); toast("Supprimé"); }
+    catch(e){ toast("Échec : "+e.message); }
+    return;
+  }
+
+  const st = el("[data-start]");
+  if(st){
+    const w = S.wishlist.find(x=>x.id===st.dataset.start);
+    if(!w) return;
+    try{
+      await api("upsert",{entity:"books",row:{titre:w.titre,auteur:w.auteur,type:"Livre",
+        categorie:w.categorie,statut:"En cours",annee:new Date().getFullYear(),
+        mois:MOIS[new Date().getMonth()],cover:w.cover,
+        dateDebut:new Date().toISOString().slice(0,10)}});
+      await api("delete",{entity:"wishlist",id:w.id});
+      closeModal(); view="dash"; toast("Bonne lecture");
+    }catch(e){ toast("Échec : "+e.message); }
+    return;
+  }
+
+  if(el("[data-save-cid]")){
+    const v = (($("#cid-input")||{}).value||"").trim();
+    if(!/\.apps\.googleusercontent\.com$/.test(v)){
+      toast("L'ID doit finir par .apps.googleusercontent.com"); return; }
+    localStorage.setItem(LS_CID, v);
+    const k = $("#key-input"); if(k) localStorage.setItem(LS_KEY, (k.value||"").trim());
+    tokenClient = null; accessToken = null;
+    modal = null; status = "idle";
+    try { await getToken(true); } catch(e){ toast("Connexion refusée : "+e.message); }
+    await pull(); return;
+  }
+  if(el("[data-covers]")){ closeModal(); toast("Recherche en cours…"); fetchCoversBatch(); return; }
+  if(el("[data-recover]")){
+    if(!confirm("Effacer toutes les couvertures du Sheets et tout rechercher ?")) return;
+    closeModal(); toast("Réinitialisation…");
+    try{
+      for(const entity of ["books","wishlist"]){
+        const rows = (entity==="books"?S.books:S.wishlist).filter(x=>x.cover);
+        if(rows.length) await api("saveCovers",{entity, covers:rows.map(x=>({id:x.id,cover:""}))});
+      }
+    }catch(e){}
+    fetchCoversBatch(); return; }
+  if(el("[data-export]")){
+    const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "suivi-de-lecture-"+new Date().toISOString().slice(0,10)+".json";
+    a.click(); return;
+  }
+
+  if(el("[data-close]") && (ev.target.hasAttribute("data-close"))){ closeModal(); return; }
+});
+
+document.addEventListener("input", ev => {
+  const f = ev.target.closest("[data-filter]");
+  if(!f) return;
+  filters[f.dataset.filter] = f.value;
+  const k = f.dataset.filter, pos = f.selectionStart;
+  render();
+  const again = document.querySelector('[data-filter="'+k+'"]');
+  if(again){ again.focus(); if(again.setSelectionRange && f.type!=="select-one") again.setSelectionRange(pos,pos); }
+});
+document.addEventListener("keydown", ev => { if(ev.key==="Escape" && modal) closeModal(); });
+
+/* ---------------- démarrage ---------------- */
+(function boot(){
+  const cached = localStorage.getItem(LS_CACHE);
+  if(cached){ try{ S = Object.assign(S, JSON.parse(cached)); }catch(e){} }
+  if(!clientId()) status = "setup";
+  render();                       // affichage immédiat depuis le cache
+  if(clientId()) pull();          // rafraîchissement en arrière-plan
+})();
+</script>
+</body>
+</html>
