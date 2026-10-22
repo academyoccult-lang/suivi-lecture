@@ -257,6 +257,16 @@ h1{font-family:var(--title);font-size:clamp(19px,1.5vw + 10px,26px);font-weight:
 @media(hover:none){ .bk3{--peek:calc(var(--cw) * .8)} .bk3:hover{transform:rotateY(30deg)} }
 @media(max-width:640px){ .books{padding:24px 40px 0 8px} }
 
+/* ---------- sélecteur de couverture ---------- */
+.cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;
+  max-height:218px;overflow-y:auto;padding:2px}
+.cand{aspect-ratio:2/3;border-radius:5px;overflow:hidden;border:1px solid var(--line);
+  cursor:pointer;background:var(--surface-2);transition:.15s var(--ease);padding:0}
+.cand img{width:100%;height:100%;object-fit:cover;display:block}
+.cand:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft);border-color:var(--gold)}
+.cand.on{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.cands-msg{grid-column:1/-1;font-size:11.5px;color:var(--text-mut);padding:6px 2px}
+
 /* ---------- tableau ---------- */
 .tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .inp{background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;
@@ -697,6 +707,50 @@ async function findCover(titre, auteur){
   return null;
 }
 
+/** Toutes les couvertures plausibles, plusieurs éditions comprises :
+    c'est à toi de reconnaître la bonne, pas à un algorithme de deviner. */
+async function coverCandidates(q){
+  const query = String(q||"").replace(/\s+/g," ").trim();
+  if(!query) return { list:[], quota:false };
+  const out = [], seen = new Set();
+  const add = (u,l) => { if(u && !seen.has(u)){ seen.add(u); out.push({u:u, l:l||""}); } };
+  const key = booksKey();
+  const brut = query.replace(/[-\s]/g,"");
+  const isIsbn = /^\d{9}[\dXx]$|^\d{13}$/.test(brut);
+  let quota = false;
+
+  for(const req of (isIsbn ? ["isbn:"+brut] : ['intitle:"'+query+'"', query])){
+    try{
+      const r = await fetch("https://www.googleapis.com/books/v1/volumes?printType=books&maxResults=20&q="
+        + encodeURIComponent(req) + (key ? "&key="+encodeURIComponent(key) : ""));
+      if(r.status===429 || r.status===403){ quota = true; break; }
+      if(r.ok){
+        const j = await r.json();
+        for(const it of (j.items||[])){
+          const vi = it.volumeInfo||{}, li = vi.imageLinks;
+          const u = li && (li.thumbnail || li.smallThumbnail);
+          if(u) add(u.replace(/^http:/,"https:").replace("&edge=curl","").replace(/zoom=\d/,"zoom=2"),
+                    (vi.title||"") + (vi.publishedDate ? " · "+String(vi.publishedDate).slice(0,4) : ""));
+        }
+      }
+    }catch(e){}
+    if(out.length >= 14) break;
+  }
+
+  if(isIsbn) add("https://covers.openlibrary.org/b/isbn/"+brut+"-L.jpg", "Open Library · ISBN");
+  else try{
+    const r = await fetch("https://openlibrary.org/search.json?limit=16&fields=cover_i,title,first_publish_year&q="
+      + encodeURIComponent(query));
+    if(r.ok){
+      const j = await r.json();
+      for(const d of (j.docs||[])) if(d.cover_i)
+        add("https://covers.openlibrary.org/b/id/"+d.cover_i+"-L.jpg",
+            (d.title||"") + (d.first_publish_year ? " · "+d.first_publish_year : ""));
+    }
+  }catch(e){}
+  return { list: out.slice(0,24), quota: quota };
+}
+
 /** Recherche groupée, depuis le navigateur (les IP de navigateur ne sont pas
     bloquées par Google Books, contrairement à celles d'Apps Script). */
 let coverBusy = false;
@@ -811,13 +865,15 @@ const svgf = (p,sz) => '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox=
 
 /* ---------------- couverture ---------------- */
 function coverHTML(it, cls){
-  const c = CAT_COLOR[it.categorie] || "var(--sand)";
-  if(hasCover(it)) return '<div class="cv '+(cls||"")+'"><img loading="lazy" src="'+esc(it.cover)+
-    '" alt="" onerror="this.parentNode.innerHTML=\''+
-    esc('<div class="ph" style="background:'+c+'">'+esc(it.titre)+'</div>').replace(/'/g,"\\'")+'\'"></div>';
-  return '<div class="cv '+(cls||"")+'"><div class="ph" style="background:'+c+'">'+
-    esc(it.titre)+(it.auteur?'<small>'+esc(it.auteur)+'</small>':'')+'</div></div>';
+  const c = CAT_COLOR[it.categorie] || "var(--c-aut)";
+  const ph = '<div class="ph" style="background:'+c+'">'+esc(it.titre)+
+             (it.auteur?'<small>'+esc(it.auteur)+'</small>':'')+'</div>';
+  if(hasCover(it)) return '<div class="cv '+(cls||"")+'">'+
+    '<img loading="lazy" src="'+esc(it.cover)+'" alt="" data-fb="'+esc(ph)+'" '+
+    'onerror="this.parentNode.innerHTML=this.dataset.fb"></div>';
+  return '<div class="cv '+(cls||"")+'">'+ph+'</div>';
 }
+
 function miniHTML(it){
   const c = CAT_COLOR[it.categorie] || "var(--sand)";
   return hasCover(it)
@@ -1064,11 +1120,24 @@ function mBook(b){
   return '<div class="ov" data-close><div class="mod" data-stop>'+
    '<header><h2>'+(isNew?"Nouvelle lecture":esc(b.titre))+'</h2><button class="x" data-close>&times;</button></header>'+
    '<div class="body"><form id="frm">'+
-     '<div class="cvbox" style="margin-bottom:16px">'+coverHTML(b)+
-       '<div style="display:flex;flex-direction:column;gap:8px">'+
-       '<div class="f"><label>Couverture (URL)</label><input name="cover" value="'+esc(hasCover(b)?b.cover:"")+'"></div>'+
-       '<button type="button" class="btn ghost" data-find-cover>Chercher la couverture</button>'+
-       '<div style="font-size:11.5px;color:var(--faint)">Google Books, puis Open Library. Gratuit, sans compte.</div>'+
+     '<div class="cvbox" style="margin-bottom:16px">'+
+       '<div id="cvprev">'+coverHTML(b)+'</div>'+
+       '<div style="display:flex;flex-direction:column;gap:9px;min-width:0">'+
+         '<div class="f"><label>Couverture (URL)</label>'+
+         '<input name="cover" id="cover-input" value="'+esc(hasCover(b)?b.cover:"")+'" '+
+         'placeholder="colle une URL d\'image, ou choisis ci-dessous"></div>'+
+         '<div class="f"><label>Chercher une couverture</label>'+
+         '<input id="cov-q" value="'+esc(((b.titre||"")+" "+(b.auteur||"")).trim())+'" '+
+         'placeholder="titre, auteur, ou ISBN"></div>'+
+         '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+           '<button type="button" class="btn ghost" data-find-cover>Chercher</button>'+
+           '<button type="button" class="btn ghost" data-clear-cover>Retirer</button>'+
+         '</div>'+
+         (booksKey() ? '' :
+           '<div style="font-size:11.5px;color:var(--warn);line-height:1.5">'+
+           'Aucune clé Google Books : les résultats seront très pauvres. '+
+           'Ajoute-la dans Réglages.</div>')+
+         '<div class="cands" id="cands"></div>'+
        '</div></div>'+
      '<div class="fields">'+
        fld("titre","Titre",b.titre,"wide")+
@@ -1210,6 +1279,19 @@ function formData(){
   });
   return o;
 }
+/* L'aperçu se redessine seul : on ne repasse pas par render(), qui
+   réécrirait la fiche entière et effacerait la saisie en cours. */
+function majApercu(url, titre, cat){
+  const box = document.getElementById("cvprev");
+  if(!box) return;
+  const c = CAT_COLOR[cat] || "var(--c-aut)";
+  const ph = '<div class="ph" style="background:'+c+'">'+esc(titre||"")+'</div>';
+  box.innerHTML = url
+    ? '<div class="cv"><img src="'+esc(url)+'" alt="" data-fb="'+esc(ph)+'" '+
+      'onerror="this.parentNode.innerHTML=this.dataset.fb"></div>'
+    : '<div class="cv">'+ph+'</div>';
+}
+
 function openModal(html){ modal = html; render(); }
 function closeModal(){ modal = null; render(); }
 
@@ -1245,14 +1327,46 @@ document.addEventListener("click", async ev => {
   if(fo){ const f = S.formations.find(x=>x.id===fo.dataset.form); if(f) openModal(mForm(f)); return; }
 
   if(el("[data-find-cover]")){
-    const btn = el("[data-find-cover]");
+    const btn = el("[data-find-cover]"), box = document.getElementById("cands");
     const d = formData();
     btn.disabled = true; btn.textContent = "Recherche…";
-    const url = await findCover(d.titre, d.auteur);
-    btn.disabled = false; btn.textContent = "Chercher la couverture";
-    if(url){ const i = document.querySelector('#frm [name="cover"]'); if(i) i.value = url;
-             toast("Couverture trouvée"); }
-    else toast("Aucune couverture trouvée");
+    if(box) box.innerHTML = '<div class="cands-msg">Recherche des éditions…</div>';
+    const q = ((document.getElementById("cov-q")||{}).value || "").trim()
+              || ((d.titre||"")+" "+(d.auteur||"")).trim();
+    let res = { list:[], quota:false };
+    try { res = await coverCandidates(q); } catch(e){}
+    const list = res.list;
+    btn.disabled = false; btn.textContent = "Chercher";
+    if(!box) return;
+    const actuelle = (document.getElementById("cover-input")||{}).value || "";
+    box.innerHTML = list.length
+      ? list.map(x => '<button type="button" class="cand'+(x.u===actuelle?' on':'')+
+          '" data-pick="'+esc(x.u)+'" title="'+esc(x.l||x.u)+'">'+
+          '<img loading="lazy" src="'+esc(x.u)+'" alt="" onerror="this.closest(\'.cand\').remove()">'+
+          '</button>').join("")
+      : '<div class="cands-msg">'+(res.quota
+          ? 'Google Books a refusé la requête (quota dépassé). Sans clé API, '+
+            'le quota anonyme est partagé et souvent épuisé — ajoute une clé dans Réglages.'
+          : 'Aucune édition trouvée. Reformule la recherche, ou saisis l\'ISBN du livre.')+'</div>';
+    return;
+  }
+
+  const pick = el("[data-pick]");
+  if(pick){
+    const u = pick.dataset.pick;
+    const i = document.getElementById("cover-input"); if(i) i.value = u;
+    document.querySelectorAll(".cand.on").forEach(e => e.classList.remove("on"));
+    pick.classList.add("on");
+    const d = formData();
+    majApercu(u, d.titre, d.categorie);
+    return;
+  }
+
+  if(el("[data-clear-cover]")){
+    const i = document.getElementById("cover-input"); if(i) i.value = "";
+    document.querySelectorAll(".cand.on").forEach(e => e.classList.remove("on"));
+    const d = formData();
+    majApercu("", d.titre, d.categorie);
     return;
   }
 
@@ -1329,6 +1443,11 @@ document.addEventListener("click", async ev => {
 });
 
 document.addEventListener("input", ev => {
+  if(ev.target.id === "cover-input"){
+    const d = formData();
+    majApercu(ev.target.value.trim(), d.titre, d.categorie);
+    return;
+  }
   const f = ev.target.closest("[data-filter]");
   if(!f) return;
   filters[f.dataset.filter] = f.value;
